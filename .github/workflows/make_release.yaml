@@ -1,0 +1,45 @@
+on:
+  workflow_dispatch:
+    inputs:
+      TAG:
+        description: 'The tag to use, defaults to VERSION-BUILD'
+        required: false
+        type: string
+      BUILD:
+        description: 'The build number to use'
+        required: false
+        type: number
+        default: 1
+
+env:
+  REGISTRY: ${{ vars.DOCKERHUB_REGISTRY }}
+  TAG: ${{ inputs.TAG }}
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Define TAG
+      if: ${{ !inputs.TAG }}
+      run: echo "TAG=$(cat VERSION)-${{ inputs.BUILD }}" >> $GITHUB_ENV
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    # Update the dockerhub tags
+    - name: Create semver manifest
+      run: ./release.bash "${{ env.REGISTRY }}:${{ env.TAG }}" manifest semver beta latest
+
+    # Create release
+    - name: Make it latest
+      uses: ncipollo/release-action@v1
+      with:
+        tag: ${{ env.TAG }}
+        allowUpdates: true
+        updateOnlyUnreleased: true
+        omitBodyDuringUpdate: true
+        omitNameDuringUpdate: true

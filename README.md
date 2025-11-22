@@ -1,8 +1,7 @@
 # Proxmox Backup Server in a Container
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/ayufan/pve-backup-server-dockerfiles?label=GitHub%20STABLE)](https://github.com/ayufan/pve-backup-server-dockerfiles/releases) [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/ayufan/pve-backup-server-dockerfiles?include_prereleases&color=red&label=GitHub%20BETA)](https://github.com/ayufan/pve-backup-server-dockerfiles/releases/latest)
-
-[![Docker Image Version (tag latest semver)](https://img.shields.io/docker/v/ayufan/proxmox-backup-server/latest?label=Docker%20LATEST)](https://hub.docker.com/r/ayufan/proxmox-backup-server/tags) [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/ayufan/proxmox-backup-server?sort=semver&color=red&label=Docker%20BETA)](https://hub.docker.com/r/ayufan/proxmox-backup-server/tags)
+- [![GitHub release (latest by date)](https://img.shields.io/github/v/release/ayufan/pve-backup-server-dockerfiles?label=GitHub%20Release)](https://github.com/ayufan/pve-backup-server-dockerfiles/releases) [![Docker Image Version (latest stable (amd64))](https://img.shields.io/docker/v/ayufan/proxmox-backup-server/latest?arch=amd64&label=Docker:%20latest)](https://hub.docker.com/r/ayufan/proxmox-backup-server/tags) [![Docker Image Version (latest stable (arm64))](https://img.shields.io/docker/v/ayufan/proxmox-backup-server/latest?arch=arm64&label=Docker:%20latest)](https://hub.docker.com/r/ayufan/proxmox-backup-server/tags)
+- [![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/ayufan/pve-backup-server-dockerfiles?include_prereleases&color=red&label=GitHub%20Pre-Release)](https://github.com/ayufan/pve-backup-server-dockerfiles/releases/latest) [![Docker Image Version (latest stable (amd64))](https://img.shields.io/docker/v/ayufan/proxmox-backup-server/beta?arch=amd64&color=red&label=Docker:%20beta)](https://hub.docker.com/r/ayufan/proxmox-backup-server/tags) [![Docker Image Version (latest stable (arm64))](https://img.shields.io/docker/v/ayufan/proxmox-backup-server/beta?arch=arm64&color=red&label=Docker:%20beta)](https://hub.docker.com/r/ayufan/proxmox-backup-server/tags)
 
 This is an unofficial compilation of Proxmox Backup Server
 to run it in a container for AMD64 and ARM64.
@@ -12,7 +11,7 @@ properly. Feel free to create an issue to debug those.
 
 ## Buy me a Coffee
 
-<a href='https://ko-fi.com/ayufan' target='_blank'><img height='30' style='border:0px;height:40px;' src='https://az743702.vo.msecnd.net/cdn/kofi3.png?v=0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y8GCP24)
 
 If you found it useful :)
 
@@ -30,17 +29,36 @@ at https://hub.docker.com/r/ayufan/proxmox-backup-server.
 Or:
 
 ```bash
+# Latest stable / release tag
 docker pull ayufan/proxmox-backup-server:latest
+
+# Latest pre-release / beta tag
+docker pull ayufan/proxmox-backup-server:beta
 ```
+
+Each [GitHub Releases](https://github.com/ayufan/pve-backup-server-dockerfiles/releases) includes the following binary assets:
+
+- `proxmox-backup-server-*.tgz` - contains all archived debian installation files with the `./install` script
+- `proxmox-backup-client-*.tgz` - contains a statically linked proxmox backup client
 
 ## Run
 
 ```bash
+wget https://raw.githubusercontent.com/ayufan/pve-backup-server-dockerfiles/refs/heads/main/docker-compose.yml
 docker-compose up -d
+```
+
+**Run beta variant:**
+
+```bash
+wget https://raw.githubusercontent.com/ayufan/pve-backup-server-dockerfiles/refs/heads/main/docker-compose.yml
+TAG=beta docker-compose up -d
 ```
 
 Then login to `https://<ip>:8007/` with `admin / pbspbs`.
 After that change a password.
+
+See the example [docker-compose.yml](./docker-compose.yml).
 
 ## Features
 
@@ -152,30 +170,35 @@ volumes:
       device: /srv/pbs/lib
 ```
 
-## Install on bare-metal host
+## Install server on bare-metal or virtualized host
 
 Docker is convienient, but in some cases it might be simply better to install natively.
-Since the packages are built against `Debian Buster` your system needs to run soon
-to be stable distribution.
 
-You can copy compiled `*.deb` (it will automatically pick `amd64` or `arm64v8` based on your distribution)
-from the container and install:
+You can pull compiled `*.deb` files from [GitHub Releases](https://github.com/ayufan/pve-backup-server-dockerfiles/releases).
+
+Replace the `v4.0.12` with the latest version.
 
 ```bash
-cd /tmp
-docker run --rm ayufan/proxmox-backup-server:latest tar c /src/ | tar x
-apt install $PWD/src/*.deb
+wget https://github.com/ayufan/pve-backup-server-dockerfiles/releases/download/v4.0.12/proxmox-backup-server-v4.0.12-$(dpkg --print-architecture).tgz
+tar zxf proxmox-backup-server-*.tgz
+proxmox-backup-server-*/install
 ```
 
-## Recompile latest version or master
+## Use static client binary
 
-Refer to [PROCESS.md](PROCESS.md).
+Similar to server, the client binary is available for various architectures. The `arm32` is considered unstable, and should only be able to backup, but likely cannot be used to restore data.
 
-## Build on your own
+```bash
+wget https://github.com/ayufan/pve-backup-server-dockerfiles/releases/download/v4.0.12/proxmox-backup-client-v4.0.12-$(dpkg --print-architecture).tgz
+tar zxf proxmox-backup-client-*.tgz
+proxmox-backup-client-*/proxmox-backup-client.sh
+```
+
+## Build on your own / Recompile latest version or main
 
 Refer to [PROCESS.md](PROCESS.md).
 
 ## Author
 
-This is just built by Kamil Trzciński, 2020-2023
+This is just built by Kamil Trzciński, 2020-2025
 from the sources found on http://git.proxmox.com/.
